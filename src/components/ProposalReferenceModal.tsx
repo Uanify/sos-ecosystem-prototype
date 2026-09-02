@@ -218,51 +218,51 @@ export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
   const currentNav = NAV_ITEMS.find(n => n.id === activeTab)!;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/90 backdrop-blur-md">
-      {/* Modal shell — full height layout */}
-      <div className="relative w-full max-w-7xl bg-[#0a0f1a] border border-slate-800/80 rounded-2xl shadow-2xl text-slate-100 flex flex-col"
-        style={{ maxHeight: '95vh', height: '95vh' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-slate-950/95 backdrop-blur-md overflow-hidden">
+      {/* Modal shell — full screen on mobile, elegant card on desktop */}
+      <div className="relative w-full h-full sm:h-[95vh] sm:max-h-[95vh] max-w-7xl bg-[#0a0f1a] sm:border border-slate-800/80 sm:rounded-2xl shadow-2xl text-slate-100 flex flex-col overflow-hidden">
 
         {/* ── TOP HEADER BAR ── */}
-        <div className="shrink-0 px-6 py-4 border-b border-slate-800 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40 shrink-0">
-              <FileText className="w-5 h-5 text-white" />
+        <div className="shrink-0 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 flex items-center justify-between gap-3 bg-slate-950/90">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40 shrink-0">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold text-sky-300 bg-blue-950 px-2 py-0.5 rounded font-mono uppercase border border-blue-900 tracking-wider">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[9px] font-bold text-sky-300 bg-blue-950 px-1.5 sm:px-2 py-0.5 rounded font-mono uppercase border border-blue-900 tracking-wider shrink-0">
                   Uanify · Client Proposal
                 </span>
-                <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Architecture Preview Mode
+                <span className="hidden xs:flex items-center gap-1 text-[10px] text-slate-500 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  Architecture Preview
                 </span>
               </div>
-              <h2 className="text-base sm:text-lg font-black font-heading text-white leading-tight mt-0.5">
+              <h2 className="text-sm sm:text-base md:text-lg font-black font-heading text-white leading-tight mt-0.5 truncate">
                 Shining On Safety — {isEn ? 'Unified Digital Ecosystem Proposal' : 'Propuesta: Ecosistema Digital Unificado'}
               </h2>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-500 hover:text-white rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-white rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer shrink-0"
+            aria-label="Close Proposal"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* ── BUSINESS VALUE & COLLABORATIVE SCOPE BANNER ── */}
-        <div className="shrink-0 mx-6 mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-950/90 via-indigo-950/70 to-blue-950/90 border border-blue-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-inner">
+        <div className="shrink-0 mx-3 sm:mx-6 mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-blue-950/90 via-indigo-950/70 to-blue-950/90 border border-blue-700/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 shadow-inner">
           <div className="flex items-center gap-2 shrink-0">
-            <TrendingUp className="w-5 h-5 text-sky-400" />
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 shrink-0" />
             <span className="text-xs font-black text-white font-heading">
-              {isEn ? 'Executive Framework & Strategic Case:' : 'Marco Ejecutivo y Retorno de Inversión:'}
+              {isEn ? 'Executive Framework & ROI:' : 'Marco Ejecutivo y Retorno:'}
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-300">
+          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-[10px] sm:text-[11px] text-slate-300">
             <span>
-              <strong className="text-white">Option 1 ($18.5k)</strong> — {isEn ? 'paid back with' : 'se amortiza con'}
+              <strong className="text-white">Opt 1 ($18.5k)</strong> — {isEn ? 'paid back with' : 'se amortiza con'}
               <strong className="text-emerald-400 ml-1">{isEn ? '1 Gold Retainer ($84k/yr)' : '1 Convenio Gold ($84k/año)'}</strong>
             </span>
             <span className="text-slate-600 hidden sm:inline">|</span>
@@ -272,37 +272,37 @@ export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
               {isEn ? 'in Q1' : 'en el Q1'}
             </span>
             <span className="text-slate-600 hidden sm:inline">|</span>
-            <span className="text-sky-300 font-semibold flex items-center gap-1 bg-blue-900/60 px-2.5 py-0.5 rounded-md border border-blue-700/50">
-              <Sparkles className="w-3.5 h-3.5 text-sky-300" />
-              {isEn ? 'Open Working Document · Tailorable to Shining On Safety priorities & custom adjustments' : 'Documento Vivo de Trabajo · Adaptable a las prioridades y ajustes de Shining On Safety'}
+            <span className="text-sky-300 font-semibold flex items-center gap-1 bg-blue-900/60 px-2 py-0.5 rounded border border-blue-700/50">
+              <Sparkles className="w-3 h-3 text-sky-300 shrink-0" />
+              {isEn ? 'Open Working Document' : 'Documento Vivo de Trabajo'}
             </span>
           </div>
         </div>
 
-        {/* ── BODY: SIDEBAR + CONTENT ── */}
-        <div className="flex flex-1 min-h-0 mt-4 gap-0">
+        {/* ── BODY: SIDEBAR + CONTENT (RESPONSIVE FLEX) ── */}
+        <div className="flex flex-col md:flex-row flex-1 min-h-0 mt-3 sm:mt-4 gap-0 overflow-hidden">
 
-          {/* Left Sidebar Nav */}
-          <nav className="shrink-0 w-52 border-r border-slate-800 px-3 py-2 flex flex-col gap-1 overflow-y-auto">
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest px-2 mb-1">
+          {/* Navigation Bar (Horizontal on mobile/tablet, vertical sidebar on desktop) */}
+          <nav className="shrink-0 w-full md:w-52 border-b md:border-b-0 md:border-r border-slate-800 px-3 py-2 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-y-auto scrollbar-none bg-slate-950/60">
+            <p className="hidden md:block text-[9px] font-bold text-slate-600 uppercase tracking-widest px-2 mb-1">
               {isEn ? 'Proposal Sections' : 'Secciones de la Propuesta'}
             </p>
             {NAV_ITEMS.map(item => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer group ${
+                className={`flex items-center gap-2 px-3 py-2 md:py-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer shrink-0 md:w-full group ${
                   activeTab === item.id
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    : 'text-slate-400 hover:text-white bg-slate-900/80 md:bg-transparent hover:bg-slate-800/60 border border-slate-800 md:border-transparent'
                 }`}
               >
                 <span className={activeTab === item.id ? 'text-sky-200' : 'text-slate-500 group-hover:text-slate-300'}>
                   {item.icon}
                 </span>
-                <span className="flex-1 leading-snug">{isEn ? item.labelEn : item.labelEs}</span>
+                <span className="whitespace-nowrap md:whitespace-normal md:flex-1 leading-snug">{isEn ? item.labelEn : item.labelEs}</span>
                 {item.badge && (
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0 ${
+                  <span className={`hidden lg:inline-block text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0 ${
                     activeTab === item.id ? 'bg-blue-800 text-sky-200' : 'bg-slate-800 text-sky-400'
                   }`}>
                     {item.badge}
@@ -312,7 +312,7 @@ export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
             ))}
 
             {/* Sidebar bottom: prototype note */}
-            <div className="mt-auto pt-4 border-t border-slate-800/60 px-2">
+            <div className="hidden md:block mt-auto pt-4 border-t border-slate-800/60 px-2">
               <p className="text-[9px] text-slate-600 leading-relaxed">
                 {isEn
                   ? 'This is a functional architecture prototype. The final production build by Uanify includes custom-engineered code, dedicated cloud infrastructure, and bespoke UI/UX — exceeding this demo in every metric.'
@@ -322,7 +322,7 @@ export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
           </nav>
 
           {/* Content Area */}
-          <div className="flex-1 min-w-0 overflow-y-auto px-6 py-4">
+          <div className="flex-1 min-w-0 overflow-y-auto px-3 sm:px-6 py-3 sm:py-4">
 
             {/* Section header */}
             <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-800/60">
@@ -442,7 +442,26 @@ export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
                           ],
                         },
                         {
-                          category: '5. Delivery, Infrastructure & Warranty',
+                          category: '5. Commercial Return on Investment (ROI) & Payback',
+                          rows: [
+                            {
+                              label: 'Direct Investment Payback Benchmark',
+                              sub: 'How the platform pays for itself',
+                              opt1: { yes: true, text: 'Amortized by closing ONE Gold Retainer ($84,000/yr) or enrolling 75 students in Q1' },
+                              opt2: { yes: null, text: 'Amortized by enrolling 48 LMS students or closing ONE Silver Retainer ($48,000/yr)' },
+                              opt3: { yes: null, text: 'Recovers via incremental course conversions from performance fixes' },
+                            },
+                            {
+                              label: 'Annual Revenue Potential Unlocked',
+                              sub: 'Commercial upside for Shining On Safety',
+                              opt1: { yes: true, text: 'Enterprise B2B Retainers ($27k–$160k/yr) + Automated Course Sales + Equipment Store Bundles' },
+                              opt2: { yes: true, text: 'Direct Course Tuitions ($180–$349/ea) + Standard Corporate Inquiries' },
+                              opt3: { yes: null, text: 'Current Revenue Model with improved page speed conversion' },
+                            },
+                          ],
+                        },
+                        {
+                          category: '6. Delivery, Infrastructure & Warranty',
                           rows: [
                             {
                               label: 'Delivery Timeline',
@@ -454,9 +473,9 @@ export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
                             {
                               label: 'Post-Launch Warranty',
                               sub: 'Bugfix and onboarding support',
-                              opt1: { yes: null, text: '30 Days', neutral: true },
-                              opt2: { yes: null, text: '30 Days', neutral: true },
-                              opt3: { yes: null, text: '30 Days', neutral: true },
+                              opt1: { yes: null, text: '30 Days Included', neutral: true },
+                              opt2: { yes: null, text: '30 Days Included', neutral: true },
+                              opt3: { yes: null, text: '30 Days Included', neutral: true },
                             },
                             {
                               label: 'Monthly Client Cloud Costs',
