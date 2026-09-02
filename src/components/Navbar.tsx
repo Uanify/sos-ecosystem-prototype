@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
 import { 
-  Shield, 
   ShoppingBag, 
   Globe, 
-  User, 
-  Layers, 
-  CheckCircle2, 
   Menu, 
   X, 
-  Phone, 
   Settings, 
   QrCode,
   Flame,
-  Award
+  GraduationCap
 } from 'lucide-react';
-import { TierMode } from './TierSwitcherBanner';
+import type { TierMode } from './TierSwitcherBanner';
 
 interface NavbarProps {
   lang: 'en' | 'es';
   onToggleLang: () => void;
   tier: TierMode;
   cartCount: number;
+  activeSection: 'main' | 'university';
+  onSelectSection: (section: 'main' | 'university') => void;
   onOpenCart: () => void;
   onOpenAdmin: () => void;
   onOpenQRVerify: () => void;
@@ -32,6 +29,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleLang,
   tier,
   cartCount,
+  activeSection,
+  onSelectSection,
   onOpenCart,
   onOpenAdmin,
   onOpenQRVerify,
@@ -41,95 +40,103 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isEn = lang === 'en';
 
   return (
-    <header className="sticky top-[73px] sm:top-[69px] z-40 bg-slate-950/90 border-b border-slate-800/80 backdrop-blur-lg">
+    <nav className="bg-white border-b border-slate-200 text-slate-900 shadow-xs w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-18 sm:h-20">
           
-          {/* Logo Brand */}
-          <a href="#" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 p-0.5 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Shield className="w-6 h-6 text-amber-400 group-hover:text-amber-300 transition-colors" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-heading font-black text-xl tracking-tight text-white group-hover:text-amber-400 transition-colors">
-                  SHINING ON SAFETY
-                </span>
-                {tier === 'option1' && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                    <CheckCircle2 className="w-3 h-3" />
-                    3-in-1 Unified
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-400 tracking-wider uppercase font-medium">
-                {isEn ? 'Safety University & Workforce Compliance' : 'Universidad de Seguridad y Cumplimiento Laboral'}
-              </p>
-            </div>
+          {/* 1. Official Authentic Logo */}
+          <a 
+            href="#" 
+            onClick={(e) => { e.preventDefault(); onSelectSection('main'); }}
+            className="flex items-center gap-3 shrink-0 py-2"
+          >
+            <img
+              src="/logo.png"
+              alt="Shining On Safety"
+              className="h-11 sm:h-12 w-auto object-contain drop-shadow-xs hover:opacity-95 transition-opacity"
+            />
           </a>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-300">
-            <a href="#courses" className="hover:text-amber-400 transition-colors py-1 flex items-center gap-1">
-              <span>{isEn ? 'Course Catalog' : 'Cursos'}</span>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">
-                $180–$349
+          {/* 2. Elegant, Harmonious Navigation Links */}
+          <div className="hidden lg:flex items-center gap-7 text-[13px] font-semibold text-slate-700">
+            
+            {/* Safety University Portal Tab */}
+            <button
+              onClick={() => onSelectSection('university')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+                activeSection === 'university' 
+                  ? 'bg-blue-600 text-white shadow-xs font-bold' 
+                  : 'bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold border border-blue-200'
+              }`}
+            >
+              <GraduationCap className={`w-4 h-4 ${activeSection === 'university' ? 'text-sky-200' : 'text-blue-600'}`} />
+              <span>{isEn ? 'Safety University' : 'Universidad de Seguridad'}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono font-bold ${
+                activeSection === 'university' ? 'bg-blue-800 text-sky-200' : 'bg-blue-200 text-blue-900'
+              }`}>
+                LMS
               </span>
+            </button>
+
+            <a 
+              href="#courses"
+              onClick={() => onSelectSection('main')}
+              className="hover:text-blue-600 transition-colors py-1 font-medium"
+            >
+              {isEn ? 'Course Catalog' : 'Catálogo'}
             </a>
 
-            <a href="#gear-store" className="hover:text-amber-400 transition-colors py-1 flex items-center gap-1">
-              <span>{isEn ? 'Safety Gear Store' : 'Tienda de Equipo'}</span>
-              {tier === 'option1' && (
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-semibold">
-                  {isEn ? 'Integrated' : 'Integrada'}
-                </span>
-              )}
+            <a 
+              href="#gear-store"
+              onClick={() => onSelectSection('main')}
+              className="hover:text-blue-600 transition-colors py-1 font-medium"
+            >
+              {isEn ? 'Safety Gear' : 'Tienda EPP'}
             </a>
 
-            <a href="#b2b-portal" className="hover:text-amber-400 transition-colors py-1 flex items-center gap-1.5">
-              <span>{isEn ? 'Corporate Programs' : 'Programas B2B'}</span>
-              <span className="text-[10px] bg-amber-400 text-slate-950 font-bold px-1.5 py-0.5 rounded">
-                $27k–$160k
-              </span>
+            <a 
+              href="#b2b-portal"
+              onClick={() => onSelectSection('main')}
+              className="hover:text-blue-600 transition-colors py-1 font-medium"
+            >
+              {isEn ? 'Corporate Retainers' : 'Convenios'}
             </a>
 
             <button
               onClick={onOpenRiskCalculator}
-              className="text-amber-400 hover:text-amber-300 transition-colors py-1 flex items-center gap-1 font-semibold"
+              className="text-slate-700 hover:text-amber-600 transition-colors py-1 flex items-center gap-1.5 font-bold cursor-pointer text-xs uppercase font-mono"
             >
-              <Flame className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
-              <span>{isEn ? 'Free OSHA Audit' : 'Auditoría OSHA'}</span>
+              <Flame className="w-3.5 h-3.5 text-amber-500" />
+              <span>{isEn ? 'OSHA Scorecard' : 'Scorecard'}</span>
             </button>
-          </nav>
+          </div>
 
-          {/* Right Action Controls */}
+          {/* 3. Action Controls */}
           <div className="flex items-center gap-2.5 sm:gap-3">
             
-            {/* Language Toggle (Option 1 feature) */}
+            {/* Language Toggle */}
             <button
               onClick={onToggleLang}
               disabled={tier !== 'option1'}
               title={tier !== 'option1' ? 'Bilingual Toggle available in Option 1' : 'Switch Language'}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                 tier === 'option1'
-                  ? 'bg-slate-900 border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-400'
-                  : 'bg-slate-900/50 border-slate-800 text-slate-500 opacity-60 cursor-not-allowed'
+                  ? 'bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-500 hover:text-blue-600'
+                  : 'bg-slate-100 border-slate-200 text-slate-400 opacity-60 cursor-not-allowed'
               }`}
             >
-              <Globe className="w-3.5 h-3.5 text-amber-400" />
-              <span className="uppercase">{lang}</span>
+              <Globe className="w-3.5 h-3.5 text-blue-600" />
+              <span className="uppercase font-mono">{lang}</span>
             </button>
 
             {/* QR Verification trigger */}
             <button
               onClick={onOpenQRVerify}
               title={isEn ? 'Verify Certificate Authenticity' : 'Verificar Autenticidad de Certificado'}
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 hover:border-amber-500 text-slate-300 hover:text-white transition-all"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-blue-500 text-slate-700 hover:text-blue-600 transition-all cursor-pointer shadow-2xs"
             >
-              <QrCode className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden md:inline">{isEn ? 'Verify QR' : 'Validar QR'}</span>
+              <QrCode className="w-3.5 h-3.5 text-blue-600" />
+              <span>{isEn ? 'Verify QR' : 'Validar QR'}</span>
             </button>
 
             {/* SuperAdmin CMS Demo trigger */}
@@ -137,25 +144,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={onOpenAdmin}
               disabled={tier === 'option3'}
               title={tier === 'option3' ? 'SuperAdmin CMS requires Option 1 or 2' : 'Open SuperAdmin CMS Demo'}
-              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                 tier !== 'option3'
-                  ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/10 border-amber-500/40 text-amber-300 hover:border-amber-400'
-                  : 'bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
+                  ? 'bg-blue-50/80 border-blue-200 text-blue-700 hover:bg-blue-100'
+                  : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-50'
               }`}
             >
-              <Settings className="w-3.5 h-3.5 text-amber-400" />
-              <span>{isEn ? 'SuperAdmin CMS' : 'Panel CMS'}</span>
+              <Settings className="w-3.5 h-3.5 text-blue-600" />
+              <span>{isEn ? 'SuperAdmin' : 'Panel CMS'}</span>
             </button>
 
-            {/* Shopping Cart Drawer */}
+            {/* Shopping Cart Button with Safety Amber Counter */}
             <button
               onClick={onOpenCart}
-              className="relative p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/60 text-slate-200 transition-all hover:scale-105"
+              className="relative p-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all hover:scale-105 cursor-pointer ml-1"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag className="w-5 h-5 text-amber-400" />
+              <ShoppingBag className="w-4 h-4 text-white" />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-500 text-slate-950 text-xs font-black flex items-center justify-center shadow-lg animate-bounce">
+                <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black flex items-center justify-center shadow-xs">
                   {cartCount}
                 </span>
               )}
@@ -164,61 +171,62 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg bg-slate-900 text-slate-300 border border-slate-800"
+              className="lg:hidden p-2 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 cursor-pointer"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
+
         </div>
       </div>
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-950 border-b border-slate-800 px-4 pt-3 pb-6 space-y-3">
-          <a
-            href="#courses"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-900 hover:text-amber-400"
+        <div className="lg:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-3 shadow-xl">
+          <button
+            onClick={() => { onSelectSection('university'); setMobileMenuOpen(false); }}
+            className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-blue-700 bg-blue-50 flex items-center justify-between"
           >
-            {isEn ? '📚 Course Catalog ($180–$349)' : '📚 Catálogo de Cursos ($180–$349)'}
-          </a>
+            <span>🎓 Safety University LMS</span>
+            <span className="text-xs bg-blue-200 text-blue-900 px-2 py-0.5 rounded-full font-mono font-bold">6 Courses</span>
+          </button>
           <a
             href="#gear-store"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-900 hover:text-amber-400"
+            onClick={() => { onSelectSection('main'); setMobileMenuOpen(false); }}
+            className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50"
           >
-            {isEn ? '🦺 Safety Gear Store' : '🦺 Tienda de Equipo de Seguridad'}
+            Safety Gear Store
           </a>
           <a
             href="#b2b-portal"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-900 hover:text-amber-400"
+            onClick={() => { onSelectSection('main'); setMobileMenuOpen(false); }}
+            className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-50"
           >
-            {isEn ? '🏢 Corporate Packages ($27k–$160k)' : '🏢 Paquetes Corporativos ($27k–$160k)'}
+            Corporate Retainers ($27k–$160k)
           </a>
           <button
             onClick={() => { setMobileMenuOpen(false); onOpenRiskCalculator(); }}
-            className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-amber-400 hover:bg-slate-900 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 rounded-lg text-sm font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2"
           >
-            <Flame className="w-4 h-4 text-orange-400" />
-            {isEn ? 'Free OSHA Risk Audit' : 'Auditoría OSHA Gratuita'}
+            <Flame className="w-4 h-4 text-amber-500" />
+            <span>OSHA Risk Scorecard</span>
           </button>
           <button
             onClick={() => { setMobileMenuOpen(false); onOpenAdmin(); }}
-            className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:bg-slate-900 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
           >
-            <Settings className="w-4 h-4 text-amber-400" />
-            {isEn ? 'Preview SuperAdmin CMS' : 'Ver Panel CMS SuperAdmin'}
+            <Settings className="w-4 h-4 text-blue-600" />
+            <span>SuperAdmin CMS Panel</span>
           </button>
           <button
             onClick={() => { setMobileMenuOpen(false); onOpenQRVerify(); }}
-            className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:bg-slate-900 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 flex items-center gap-2"
           >
-            <QrCode className="w-4 h-4 text-amber-400" />
-            {isEn ? 'Verify QR Certificate' : 'Verificar Certificado QR'}
+            <QrCode className="w-4 h-4 text-blue-600" />
+            <span>Verify QR Certificate</span>
           </button>
         </div>
       )}
-    </header>
+    </nav>
   );
 };

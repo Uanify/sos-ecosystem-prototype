@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { TierSwitcherBanner, TierMode } from './components/TierSwitcherBanner';
+import { useState } from 'react';
+import { TierSwitcherBanner } from './components/TierSwitcherBanner';
+import type { TierMode } from './components/TierSwitcherBanner';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { CourseCatalog } from './components/CourseCatalog';
+import { UniversityView } from './components/UniversityView';
 import { GearStore } from './components/GearStore';
 import { B2BCorporatePortal } from './components/B2BCorporatePortal';
 import { RiskAssessmentModal } from './components/RiskAssessmentModal';
@@ -18,6 +20,7 @@ export function App() {
   // Global State
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [tier, setTier] = useState<TierMode>('option1');
+  const [activeSection, setActiveSection] = useState<'main' | 'university'>('main');
   const [courses, setCourses] = useState<Course[]>(COURSES_DATA);
 
   // Cart State
@@ -71,57 +74,76 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-600 selection:text-white">
       
-      {/* 1. Executive 3-Tier Switcher Top Bar */}
-      <TierSwitcherBanner
-        currentTier={tier}
-        onSelectTier={setTier}
-        lang={lang}
-        onOpenProposalDoc={() => setIsProposalDocOpen(true)}
-      />
-
-      {/* 2. Unified Brand Header */}
-      <Navbar
-        lang={lang}
-        onToggleLang={handleToggleLang}
-        tier={tier}
-        cartCount={cartItems.length}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenAdmin={() => setIsAdminModalOpen(true)}
-        onOpenQRVerify={() => setIsQRModalOpen(true)}
-        onOpenRiskCalculator={() => setIsRiskModalOpen(true)}
-      />
-
-      {/* 3. Hero Section with Value Proposition */}
-      <main className="flex-1">
-        <Hero
+      {/* Unified Sticky Header Unit */}
+      <header className="sticky top-0 z-50 w-full shadow-md">
+        {/* 1. Executive 3-Tier Switcher Top Bar */}
+        <TierSwitcherBanner
+          currentTier={tier}
+          onSelectTier={setTier}
           lang={lang}
+          onOpenProposalDoc={() => setIsProposalDocOpen(true)}
+        />
+
+        {/* 2. Unified Brand Header with Portal Switcher */}
+        <Navbar
+          lang={lang}
+          onToggleLang={handleToggleLang}
           tier={tier}
+          cartCount={cartItems.length}
+          activeSection={activeSection}
+          onSelectSection={setActiveSection}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenAdmin={() => setIsAdminModalOpen(true)}
+          onOpenQRVerify={() => setIsQRModalOpen(true)}
           onOpenRiskCalculator={() => setIsRiskModalOpen(true)}
-          onOpenVideoModal={() => handleOpenVideo()}
         />
+      </header>
 
-        {/* 4. Certified Course Catalog ($180–$349) */}
-        <CourseCatalog
-          lang={lang}
-          tier={tier}
-          onAddToCart={handleAddToCart}
-          onOpenVideoModal={handleOpenVideo}
-        />
+      {/* Main Content Area */}
+      <main className="flex-1">
+        {activeSection === 'main' ? (
+          <>
+            {/* 3. Hero Section with Value Proposition */}
+            <Hero
+              lang={lang}
+              tier={tier}
+              onOpenRiskCalculator={() => setIsRiskModalOpen(true)}
+              onOpenVideoModal={() => handleOpenVideo()}
+            />
 
-        {/* 5. Physical Safety Equipment E-Commerce Store */}
-        <GearStore
-          lang={lang}
-          tier={tier}
-          onAddToCart={handleAddToCart}
-        />
+            {/* 4. Certified Course Catalog Preview ($180–$349) */}
+            <CourseCatalog
+              lang={lang}
+              tier={tier}
+              onAddToCart={handleAddToCart}
+              onOpenVideoModal={handleOpenVideo}
+            />
 
-        {/* 6. Corporate B2B Retainers ($27k–$160k) & Company Portal Preview */}
-        <B2BCorporatePortal
-          lang={lang}
-          tier={tier}
-        />
+            {/* 5. Physical Safety Equipment E-Commerce Store */}
+            <GearStore
+              lang={lang}
+              tier={tier}
+              onAddToCart={handleAddToCart}
+            />
+
+            {/* 6. Corporate B2B Retainers ($27k–$160k) & Company Portal Preview */}
+            <B2BCorporatePortal
+              lang={lang}
+              tier={tier}
+            />
+          </>
+        ) : (
+          /* Dedicated SOS Safety University Campus View */
+          <UniversityView
+            lang={lang}
+            onAddToCart={handleAddToCart}
+            onOpenVideoModal={handleOpenVideo}
+            onOpenQRVerify={() => setIsQRModalOpen(true)}
+            onOpenAdmin={() => setIsAdminModalOpen(true)}
+          />
+        )}
       </main>
 
       {/* 7. Comprehensive Footer */}

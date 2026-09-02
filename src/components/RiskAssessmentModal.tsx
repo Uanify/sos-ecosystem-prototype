@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, AlertTriangle, ArrowRight, Flame, ShieldAlert, Sparkles, Phone, Mail, Building, User } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, ArrowRight, Flame, Phone, Mail, Building, User } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface RiskAssessmentModalProps {
@@ -35,12 +35,12 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
     if (step < 5) {
       setStep(step + 1);
     } else {
-      setStep(6); // Results & Lead form
+      setStep(6);
     }
   };
 
   const calculateRiskScore = () => {
-    let risk = 35; // base
+    let risk = 35;
     if (answers.certifications === 'some' || answers.certifications === 'expired') risk += 25;
     if (answers.inspections === 'occasional' || answers.inspections === 'never') risk += 20;
     if (answers.manual === 'no' || answers.manual === 'outdated') risk += 15;
@@ -61,43 +61,65 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
   const riskScore = calculateRiskScore();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 text-slate-100 my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 sm:p-8 text-slate-900 my-8">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg bg-slate-800/60 hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-800 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400">
-            <Flame className="w-6 h-6" />
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+          <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-xs">
+            <Flame className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="text-lg sm:text-xl font-bold font-heading text-white">
+            <h3 className="text-lg sm:text-xl font-black font-heading text-slate-950">
               {isEn ? 'OSHA Jobsite Risk & Compliance Scorecard' : 'Evaluador de Riesgo y Cumplimiento OSHA'}
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 font-medium">
               {isEn ? 'Interactive Self-Assessment Tool for General Contractors' : 'Herramienta Interactiva de Autodiagnóstico para Constructoras'}
             </p>
           </div>
         </div>
 
-        {/* Step Indicator */}
+        {/* Step Indicator & Reset */}
         {!isSubmitted && step <= 5 && (
           <div className="mb-6">
-            <div className="flex justify-between text-xs text-slate-400 font-semibold mb-2">
-              <span>{isEn ? `Question ${step} of 5` : `Pregunta ${step} de 5`}</span>
-              <span className="text-amber-400">{Math.round((step / 5) * 100)}% Completed</span>
+            <div className="flex justify-between items-center text-xs text-slate-500 font-bold mb-2">
+              <div className="flex items-center gap-2">
+                <span>{isEn ? `Question ${step} of 5` : `Pregunta ${step} de 5`}</span>
+                {step > 1 && (
+                  <button
+                    onClick={() => {
+                      setStep(1);
+                      setAnswers({
+                        crewSize: '',
+                        certifications: '',
+                        inspections: '',
+                        manual: '',
+                        mockAudit: '',
+                      });
+                      setIsSubmitted(false);
+                    }}
+                    className="text-blue-600 hover:text-blue-800 underline font-medium cursor-pointer"
+                  >
+                    ({isEn ? 'Restart' : 'Reiniciar'})
+                  </button>
+                )}
+              </div>
+              <span className="text-blue-600 font-mono">
+                {Math.round(((step - 1) / 5) * 100)}% {isEn ? 'Completed' : 'Completado'}
+              </span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-amber-500 to-orange-500 h-full transition-all duration-300"
-                style={{ width: `${(step / 5) * 100}%` }}
+                className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+                style={{ width: `${((step - 1) / 5) * 100}%` }}
               />
             </div>
           </div>
@@ -106,7 +128,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
         {/* QUESTIONS STEP 1 to 5 */}
         {step === 1 && (
           <div className="space-y-4">
-            <h4 className="text-base sm:text-lg font-semibold text-slate-100">
+            <h4 className="text-base sm:text-lg font-bold text-slate-950">
               {isEn
                 ? '1. How many active workers/tradesmen do you manage on active jobsites?'
                 : '1. ¿Cuántos trabajadores o cuadrillas activas gestiona en obra?'}
@@ -121,10 +143,10 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
                 <button
                   key={opt.val}
                   onClick={() => handleOptionSelect('crewSize', opt.val)}
-                  className="p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500 text-left transition-all group"
+                  className="p-4 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-500 text-left transition-all group shadow-xs"
                 >
-                  <span className="font-bold text-slate-100 block group-hover:text-amber-400">{opt.label}</span>
-                  <span className="text-xs text-slate-400">{opt.sub}</span>
+                  <span className="font-bold text-slate-900 block group-hover:text-blue-600">{opt.label}</span>
+                  <span className="text-xs text-slate-500 font-medium">{opt.sub}</span>
                 </button>
               ))}
             </div>
@@ -133,7 +155,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
         {step === 2 && (
           <div className="space-y-4">
-            <h4 className="text-base sm:text-lg font-semibold text-slate-100">
+            <h4 className="text-base sm:text-lg font-bold text-slate-950">
               {isEn
                 ? '2. Are all your field workers currently certified in Fall Protection & OSHA basics?'
                 : '2. ¿Todos sus trabajadores tienen certificados vigentes de Protección Contra Caídas y OSHA?'}
@@ -147,7 +169,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
                 <button
                   key={opt.val}
                   onClick={() => handleOptionSelect('certifications', opt.val)}
-                  className="w-full p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500 text-left transition-all font-medium text-slate-200 hover:text-amber-300"
+                  className="w-full p-4 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-500 text-left transition-all font-semibold text-slate-800 hover:text-blue-700 shadow-xs"
                 >
                   {opt.label}
                 </button>
@@ -158,7 +180,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
         {step === 3 && (
           <div className="space-y-4">
-            <h4 className="text-base sm:text-lg font-semibold text-slate-100">
+            <h4 className="text-base sm:text-lg font-bold text-slate-950">
               {isEn
                 ? '3. How frequently are daily pre-shift safety checklists (scaffolds, trenches) documented?'
                 : '3. ¿Con qué frecuencia se documentan listas de verificación diarias (andamios, zanjas)?'}
@@ -172,7 +194,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
                 <button
                   key={opt.val}
                   onClick={() => handleOptionSelect('inspections', opt.val)}
-                  className="w-full p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500 text-left transition-all font-medium text-slate-200 hover:text-amber-300"
+                  className="w-full p-4 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-500 text-left transition-all font-semibold text-slate-800 hover:text-blue-700 shadow-xs"
                 >
                   {opt.label}
                 </button>
@@ -183,7 +205,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
         {step === 4 && (
           <div className="space-y-4">
-            <h4 className="text-base sm:text-lg font-semibold text-slate-100">
+            <h4 className="text-base sm:text-lg font-bold text-slate-950">
               {isEn
                 ? '4. Do you have an official, customized Company Safety Manual for your active trade?'
                 : '4. ¿Cuenta su empresa con un Manual de Seguridad personalizado para su especialidad?'}
@@ -197,7 +219,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
                 <button
                   key={opt.val}
                   onClick={() => handleOptionSelect('manual', opt.val)}
-                  className="w-full p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500 text-left transition-all font-medium text-slate-200 hover:text-amber-300"
+                  className="w-full p-4 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-500 text-left transition-all font-semibold text-slate-800 hover:text-blue-700 shadow-xs"
                 >
                   {opt.label}
                 </button>
@@ -208,7 +230,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
         {step === 5 && (
           <div className="space-y-4">
-            <h4 className="text-base sm:text-lg font-semibold text-slate-100">
+            <h4 className="text-base sm:text-lg font-bold text-slate-950">
               {isEn
                 ? '5. Has an independent safety auditor conducted an on-site mock inspection in the last 12 months?'
                 : '5. ¿Un auditor de seguridad ha realizado un simulacro de inspección en su obra en los últimos 12 meses?'}
@@ -221,7 +243,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
                 <button
                   key={opt.val}
                   onClick={() => handleOptionSelect('mockAudit', opt.val)}
-                  className="w-full p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500 text-left transition-all font-medium text-slate-200 hover:text-amber-300"
+                  className="w-full p-4 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-500 text-left transition-all font-semibold text-slate-800 hover:text-blue-700 shadow-xs"
                 >
                   {opt.label}
                 </button>
@@ -235,25 +257,25 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
           <div className="space-y-6">
             
             {/* Score Display Card */}
-            <div className="p-5 rounded-xl bg-slate-950 border border-amber-500/30">
+            <div className="p-5 rounded-xl bg-amber-50 border-2 border-amber-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                  <span className="text-xs text-amber-800 uppercase tracking-wider font-bold">
                     {isEn ? 'Estimated Jobsite OSHA Risk Score:' : 'Nivel de Riesgo OSHA Estimado:'}
                   </span>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-3xl font-black text-orange-400 font-heading">
+                    <span className="text-3xl font-black text-amber-600 font-heading">
                       {riskScore}% RISK
                     </span>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-300 font-bold border border-orange-500/40">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-amber-200 text-amber-900 font-bold">
                       {riskScore > 60 ? (isEn ? 'High Penalty Exposure' : 'Alto Riesgo de Multas') : (isEn ? 'Moderate Vulnerability' : 'Vulnerabilidad Moderada')}
                     </span>
                   </div>
                 </div>
-                <AlertTriangle className="w-10 h-10 text-orange-400 shrink-0" />
+                <AlertTriangle className="w-10 h-10 text-amber-600 shrink-0" />
               </div>
 
-              <p className="text-xs text-slate-400 mt-3 border-t border-slate-800/80 pt-2.5">
+              <p className="text-xs text-slate-700 mt-3 border-t border-amber-200 pt-2.5 font-medium">
                 {isEn
                   ? 'OSHA maximum penalties for serious violations exceed $16,131 per infraction. Recommended Action: On-site safety audit & digital compliance tracking.'
                   : 'Las multas OSHA por violaciones graves superan los $16,131 por infracción. Acción recomendada: Auditoría preventiva en obra y seguimiento digital.'}
@@ -262,7 +284,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
             {/* Lead Capture Form */}
             <form onSubmit={handleSubmitLead} className="space-y-4">
-              <p className="text-sm font-semibold text-slate-200">
+              <p className="text-sm font-bold text-slate-900">
                 {isEn
                   ? 'Get your Full Custom PDF Audit Report & Schedule a Free 15-Min Consultation:'
                   : 'Reciba su Reporte Completo en PDF y Agende una Consulta Gratuita de 15 Minutos:'}
@@ -270,61 +292,61 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">{isEn ? 'Your Name' : 'Su Nombre'}</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{isEn ? 'Your Name' : 'Su Nombre'}</label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       required
                       type="text"
                       placeholder={isEn ? "John Miller" : "Juan Pérez"}
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">{isEn ? 'Company Name' : 'Empresa / Constructora'}</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{isEn ? 'Company Name' : 'Empresa / Constructora'}</label>
                   <div className="relative">
-                    <Building className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <Building className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       required
                       type="text"
                       placeholder={isEn ? "Apex Construction Group" : "Constructora Apex"}
                       value={formData.company}
                       onChange={e => setFormData({ ...formData, company: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">{isEn ? 'Work Email' : 'Correo Electrónico'}</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{isEn ? 'Work Email' : 'Correo Electrónico'}</label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       required
                       type="email"
                       placeholder="safety@company.com"
                       value={formData.email}
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">{isEn ? 'Phone / WhatsApp' : 'Teléfono / WhatsApp'}</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">{isEn ? 'Phone / WhatsApp' : 'Teléfono / WhatsApp'}</label>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       required
                       type="tel"
                       placeholder="(555) 000-0000"
                       value={formData.phone}
                       onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-amber-500"
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
                 </div>
@@ -332,7 +354,7 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-sm shadow-xl shadow-amber-500/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-2 mt-4"
+                className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-600/30 hover:scale-[1.01] transition-all flex items-center justify-center gap-2 mt-4"
               >
                 <span>{isEn ? 'Send My Scorecard & Book Safety Review' : 'Enviar Mi Scorecard y Agendar Revisión'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -345,23 +367,34 @@ export const RiskAssessmentModal: React.FC<RiskAssessmentModalProps> = ({ isOpen
         {/* SUBMISSION CONFIRMATION */}
         {isSubmitted && (
           <div className="text-center py-8 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h4 className="text-2xl font-bold font-heading text-white">
+            <h4 className="text-2xl font-black font-heading text-slate-950">
               {isEn ? 'Audit Request Received!' : '¡Solicitud de Auditoría Recibida!'}
             </h4>
-            <p className="text-sm text-slate-300 max-w-md mx-auto">
+            <p className="text-sm text-slate-600 max-w-md mx-auto font-medium">
               {isEn
-                ? `Thank you ${formData.name}. Your OSHA Risk Report has been emailed to ${formData.email}. Melanie Jaime or our senior safety team will contact you shortly.`
-                : `Gracias ${formData.name}. Su reporte de riesgo OSHA fue enviado a ${formData.email}. Melanie Jaime o nuestro equipo de seguridad se comunicará a la brevedad.`}
+                ? `Thank you ${formData.name}. Your OSHA Risk Report has been emailed to ${formData.email}. Our authorized safety specialists will contact you shortly.`
+                : `Gracias ${formData.name}. Su reporte de riesgo OSHA fue enviado a ${formData.email}. Nuestros especialistas de seguridad se comunicarán a la brevedad.`}
             </p>
-            <button
-              onClick={onClose}
-              className="px-6 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-colors mt-2"
-            >
-              {isEn ? 'Back to Platform' : 'Volver a la Plataforma'}
-            </button>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setStep(1);
+                  setIsSubmitted(false);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+              >
+                {isEn ? 'Retake Scorecard Test' : 'Repetir Evaluación'}
+              </button>
+              <button
+                onClick={onClose}
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                {isEn ? 'Close & Return to Home' : 'Cerrar y Volver al Inicio'}
+              </button>
+            </div>
           </div>
         )}
 

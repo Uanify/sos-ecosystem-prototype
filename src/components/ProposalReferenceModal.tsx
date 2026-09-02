@@ -1,6 +1,25 @@
-import React from 'react';
-import { X, FileText, CheckCircle2, ShieldCheck, Zap, Sparkles, Building, Layers } from 'lucide-react';
-import { CORPORATE_TIERS } from '../data/content';
+import React, { useState, useEffect } from 'react';
+import {
+  X,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
+  Layers,
+  Printer,
+  Sparkles,
+  Check,
+  Zap,
+  AlertTriangle,
+  MessageSquare,
+  Send,
+  Copy,
+  BarChart3,
+  Map,
+  Server,
+  SlidersHorizontal,
+  TrendingUp,
+} from 'lucide-react';
 
 interface ProposalReferenceModalProps {
   isOpen: boolean;
@@ -8,110 +27,731 @@ interface ProposalReferenceModalProps {
   lang: 'en' | 'es';
 }
 
-export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({ isOpen, onClose, lang }) => {
+type TabId = 'pricing' | 'scopeDetails' | 'summary' | 'roadmap' | 'infrastructure' | 'feedback';
+
+const NAV_ITEMS: { id: TabId; icon: React.ReactNode; labelEn: string; labelEs: string; badge?: string }[] = [
+  { id: 'pricing', icon: <BarChart3 className="w-4 h-4" />, labelEn: 'Investment Comparison', labelEs: 'Comparativa de Inversión', badge: 'Start Here' },
+  { id: 'scopeDetails', icon: <SlidersHorizontal className="w-4 h-4" />, labelEn: 'Inclusions & Exclusions', labelEs: 'Qué Incluye y Qué NO' },
+  { id: 'summary', icon: <Sparkles className="w-4 h-4" />, labelEn: '1. Strategic Vision', labelEs: '1. Visión Estratégica' },
+  { id: 'roadmap', icon: <Map className="w-4 h-4" />, labelEn: '2. The 10 Projects', labelEs: '2. Los 10 Proyectos' },
+  { id: 'infrastructure', icon: <Server className="w-4 h-4" />, labelEn: '3. Infrastructure & Costs', labelEs: '3. Infraestructura y Costos' },
+  { id: 'feedback', icon: <MessageSquare className="w-4 h-4" />, labelEn: 'Live Notes & Requests', labelEs: 'Notas y Preguntas en Vivo' },
+];
+
+const FEEDBACK_CATEGORIES = [
+  'Scope Adjustment / Deliverables',
+  'Course Count or Modules',
+  'Payment Milestones & Schedule',
+  'Integrations (Square, AWS, CRM)',
+  'General Proposal Question',
+];
+
+const STORAGE_KEY = 'sos_proposal_notes';
+
+export const ProposalReferenceModal: React.FC<ProposalReferenceModalProps> = ({
+  isOpen,
+  onClose,
+  lang,
+}) => {
   if (!isOpen) return null;
   const isEn = lang === 'en';
+  const [activeTab, setActiveTab] = useState<TabId>('pricing');
+
+  const [clientNotes, setClientNotes] = useState('');
+  const [selectedAdjustment, setSelectedAdjustment] = useState(FEEDBACK_CATEGORIES[0]);
+  const [submittedFeedback, setSubmittedFeedback] = useState<Array<{ type: string; note: string; date: string }>>([]);
+  const [copied, setCopied] = useState(false);
+
+  // Load saved notes from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setSubmittedFeedback(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const handleSendFeedback = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientNotes.trim()) return;
+    const timestamp = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const updated = [
+      { type: selectedAdjustment, note: clientNotes, date: timestamp },
+      ...submittedFeedback,
+    ];
+    setSubmittedFeedback(updated);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); } catch {}
+    setClientNotes('');
+  };
+
+  const copySummary = () => {
+    const text = `SOS Proposal Notes:\n` + submittedFeedback.map(f => `[${f.date}] (${f.type}): ${f.note}`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const currentNav = NAV_ITEMS.find(n => n.id === activeTab)!;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 text-slate-100 my-8 max-h-[90vh] overflow-y-auto">
-        
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="sticky top-0 float-right p-2 text-slate-400 hover:text-white rounded-lg bg-slate-800/80 hover:bg-slate-700 transition-colors z-10"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/90 backdrop-blur-md">
+      {/* Modal shell — full height layout */}
+      <div className="relative w-full max-w-7xl bg-[#0a0f1a] border border-slate-800/80 rounded-2xl shadow-2xl text-slate-100 flex flex-col"
+        style={{ maxHeight: '95vh', height: '95vh' }}>
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-          <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
-            <FileText className="w-6 h-6" />
+        {/* ── TOP HEADER BAR ── */}
+        <div className="shrink-0 px-6 py-4 border-b border-slate-800 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40 shrink-0">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold text-sky-300 bg-blue-950 px-2 py-0.5 rounded font-mono uppercase border border-blue-900 tracking-wider">
+                  Uanify · Client Proposal
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Architecture Preview Mode
+                </span>
+              </div>
+              <h2 className="text-base sm:text-lg font-black font-heading text-white leading-tight mt-0.5">
+                Shining On Safety — {isEn ? 'Unified Digital Ecosystem Proposal' : 'Propuesta: Ecosistema Digital Unificado'}
+              </h2>
+            </div>
           </div>
-          <div>
-            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider font-mono">
-              Document Version 5.0 (Client Release)
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-500 hover:text-white rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* ── BUSINESS VALUE & COLLABORATIVE SCOPE BANNER ── */}
+        <div className="shrink-0 mx-6 mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-950/90 via-indigo-950/70 to-blue-950/90 border border-blue-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-inner">
+          <div className="flex items-center gap-2 shrink-0">
+            <TrendingUp className="w-5 h-5 text-sky-400" />
+            <span className="text-xs font-black text-white font-heading">
+              {isEn ? 'Executive Framework & Strategic Case:' : 'Marco Ejecutivo y Retorno de Inversión:'}
             </span>
-            <h3 className="text-xl font-bold font-heading text-white">
-              Shining On Safety — Digital Modernization & Growth Roadmap
-            </h3>
-            <p className="text-xs text-slate-400">
-              Prepared by Uanify Development Team for Melanie Jaime & Executive Board
-            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-300">
+            <span>
+              <strong className="text-white">Option 1 ($18.5k)</strong> — {isEn ? 'paid back with' : 'se amortiza con'}
+              <strong className="text-emerald-400 ml-1">{isEn ? '1 Gold Retainer ($84k/yr)' : '1 Convenio Gold ($84k/año)'}</strong>
+            </span>
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <span>
+              {isEn ? 'Or enroll' : 'O con'}
+              <strong className="text-emerald-400 mx-1">75 {isEn ? 'students' : 'alumnos'}</strong>
+              {isEn ? 'in Q1' : 'en el Q1'}
+            </span>
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <span className="text-sky-300 font-semibold flex items-center gap-1 bg-blue-900/60 px-2.5 py-0.5 rounded-md border border-blue-700/50">
+              <Sparkles className="w-3.5 h-3.5 text-sky-300" />
+              {isEn ? 'Open Working Document · Tailorable to Shining On Safety priorities & custom adjustments' : 'Documento Vivo de Trabajo · Adaptable a las prioridades y ajustes de Shining On Safety'}
+            </span>
           </div>
         </div>
 
-        {/* Executive Summary */}
-        <div className="space-y-6 text-xs text-slate-300">
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
-            <h4 className="text-sm font-bold text-white font-heading mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Core Strategic Mission: The 3-in-1 Unification</span>
-            </h4>
-            <p className="leading-relaxed text-slate-300">
-              Consolidating Shining On Safety's 3 currently fragmented platforms (Marketing Landing, Square Store, and Safety University LMS) into <strong>ONE single, high-converting digital powerhouse under shiningonsafety.us</strong>. Eliminates customer domain-hopping, unlocks Google SEO authority, and gives general contractors enterprise tools to close $27,000–$160,000 annual retainers.
+        {/* ── BODY: SIDEBAR + CONTENT ── */}
+        <div className="flex flex-1 min-h-0 mt-4 gap-0">
+
+          {/* Left Sidebar Nav */}
+          <nav className="shrink-0 w-52 border-r border-slate-800 px-3 py-2 flex flex-col gap-1 overflow-y-auto">
+            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest px-2 mb-1">
+              {isEn ? 'Proposal Sections' : 'Secciones de la Propuesta'}
             </p>
-          </div>
-
-          {/* 3 Options Overview */}
-          <div>
-            <h4 className="text-sm font-bold text-white font-heading mb-3">
-              The 3 Investment Packages at a Glance:
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* Option 1 */}
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/40 space-y-2">
-                <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider">🚀 Option 1 ($18,500 USD)</span>
-                <p className="font-bold text-white text-sm">Complete Unified Ecosystem</p>
-                <p className="text-[11px] text-slate-300">
-                  Full 3-in-1 platform build, B2B corporate portal ($27k–$160k), bilingual toggle, QR certificate engine, and SuperAdmin CMS.
-                </p>
-                <span className="inline-block text-[10px] text-amber-300 font-semibold bg-amber-950/60 px-2 py-0.5 rounded">
-                  8 to 10 Weeks • 60-day Warranty
+            {NAV_ITEMS.map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer group ${
+                  activeTab === item.id
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <span className={activeTab === item.id ? 'text-sky-200' : 'text-slate-500 group-hover:text-slate-300'}>
+                  {item.icon}
                 </span>
-              </div>
+                <span className="flex-1 leading-snug">{isEn ? item.labelEn : item.labelEs}</span>
+                {item.badge && (
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0 ${
+                    activeTab === item.id ? 'bg-blue-800 text-sky-200' : 'bg-slate-800 text-sky-400'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            ))}
 
-              {/* Option 2 */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <span className="text-[11px] font-black text-slate-300 uppercase tracking-wider">⚡ Option 2 ($11,800 USD)</span>
-                <p className="font-bold text-white text-sm">High-Impact Core</p>
-                <p className="text-[11px] text-slate-400">
-                  Speed (under 2.2s), Technical SEO, 1-step checkout, and course management CMS on existing platform.
-                </p>
-                <span className="inline-block text-[10px] text-slate-400 font-semibold bg-slate-900 px-2 py-0.5 rounded">
-                  5 to 6 Weeks • 30-day Warranty
-                </span>
-              </div>
-
-              {/* Option 3 */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">🛠️ Option 3 ($4,800 USD)</span>
-                <p className="font-bold text-white text-sm">Rapid Performance Sprint</p>
-                <p className="text-[11px] text-slate-400">
-                  Immediate 90% asset weight reduction, basic Google sitemaps, and HTTPS security headers.
-                </p>
-                <span className="inline-block text-[10px] text-slate-400 font-semibold bg-slate-900 px-2 py-0.5 rounded">
-                  2 to 3 Weeks • 14-day Warranty
-                </span>
-              </div>
-
+            {/* Sidebar bottom: prototype note */}
+            <div className="mt-auto pt-4 border-t border-slate-800/60 px-2">
+              <p className="text-[9px] text-slate-600 leading-relaxed">
+                {isEn
+                  ? 'This is a functional architecture prototype. The final production build by Uanify includes custom-engineered code, dedicated cloud infrastructure, and bespoke UI/UX — exceeding this demo in every metric.'
+                  : 'Este es un prototipo de arquitectura funcional. La plataforma final de Uanify incluirá código de ingeniería personalizado, infraestructura dedicada en la nube y UI/UX exclusiva — superando este demo en todo aspecto.'}
+              </p>
             </div>
+          </nav>
+
+          {/* Content Area */}
+          <div className="flex-1 min-w-0 overflow-y-auto px-6 py-4">
+
+            {/* Section header */}
+            <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-800/60">
+              <span className="text-blue-400">{currentNav.icon}</span>
+              <h3 className="text-sm font-bold text-white font-heading">
+                {isEn ? currentNav.labelEn : currentNav.labelEs}
+              </h3>
+            </div>
+
+            {/* ── TAB: INVESTMENT MATRIX ── */}
+            {activeTab === 'pricing' && (
+              <div className="space-y-6 text-xs text-slate-300">
+                <div className="overflow-x-auto rounded-xl border border-slate-800">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-900 text-slate-400 font-bold uppercase text-[9px] border-b border-slate-800">
+                      <tr>
+                        <th className="p-3 w-1/4">Feature Area</th>
+                        <th className="p-3 w-1/4 bg-blue-950/80 text-sky-300 border-x border-blue-900">
+                          <div className="flex items-center gap-1">
+                            <Layers className="w-3 h-3" />
+                            <span>Option 1 — Full Ecosystem</span>
+                          </div>
+                          <span className="text-base font-black text-white font-heading block mt-0.5">$18,500</span>
+                        </th>
+                        <th className="p-3 w-1/4">
+                          <div className="flex items-center gap-1">
+                            <Zap className="w-3 h-3" />
+                            <span>Option 2 — Core LMS & Store</span>
+                          </div>
+                          <span className="text-sm font-black text-white font-heading block mt-0.5">$11,800</span>
+                        </th>
+                        <th className="p-3 w-1/4">
+                          <div className="flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3" />
+                            <span>Option 3 — Essential Sprint</span>
+                          </div>
+                          <span className="text-sm font-black text-white font-heading block mt-0.5">$4,800</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+                      {[
+                        {
+                          category: '1. Platform Architecture & Unification',
+                          rows: [
+                            {
+                              label: 'Domain & Platform Consolidation',
+                              sub: 'Consolidation under shiningonsafety.us',
+                              opt1: { yes: true, text: 'Full 3-in-1 Unification (Landing + Store + LMS under 1 domain)' },
+                              opt2: { yes: null, text: 'Core 2-in-1 Unification (Unified LMS + Marketing; Store remains external)' },
+                              opt3: { yes: false, text: 'Standalone Sprint (Optimizes current 3 separated sites without merging)' },
+                            },
+                            {
+                              label: 'PPE Equipment Gear Store',
+                              sub: 'Square API checkout & gear integration',
+                              opt1: { yes: true, text: 'Fully Integrated In-App Gear Store + Unified Cart' },
+                              opt2: { yes: null, text: 'External Square Store Link (Separate cart from courses)' },
+                              opt3: { yes: null, text: 'External Square Store Link (No in-app store integration)' },
+                            },
+                          ],
+                        },
+                        {
+                          category: '2. B2B Corporate Tools & Retainers',
+                          rows: [
+                            {
+                              label: 'Corporate Retainer Quoting Engine',
+                              sub: 'Bronze, Silver, Gold, Diamond tiers ($27k–$160k)',
+                              opt1: { yes: true, text: 'Interactive Workforce Calculator + Instant Agreement Generator' },
+                              opt2: { yes: null, text: 'Corporate Plans Overview + Contact Quote Request Form' },
+                              opt3: { yes: false, text: 'Standard Contact Page Form (Manual quote process)' },
+                            },
+                            {
+                              label: 'Subcontractor Crew Dashboard',
+                              sub: 'OSHA 300A logs, crew roster, Excel export',
+                              opt1: { yes: true, text: 'Dedicated Contractor Manager Portal & Live Excel/OSHA Logs Export' },
+                              opt2: { yes: null, text: 'Student Completion Roster View (Without multi-company management)' },
+                              opt3: { yes: false, text: 'Individual Student Records (No corporate manager dashboard)' },
+                            },
+                          ],
+                        },
+                        {
+                          category: '3. Safety University LMS & Credentialing',
+                          rows: [
+                            {
+                              label: 'Bilingual System (EN/ES)',
+                              sub: 'Full English and Spanish availability',
+                              opt1: { yes: true, text: '1-Click Dual-Language Switcher across all courses & store' },
+                              opt2: { yes: true, text: 'Bilingual Course Syllabus & Lesson Summaries' },
+                              opt3: { yes: null, text: 'Primary Language with Bilingual Landing Page Elements' },
+                            },
+                            {
+                              label: 'Digital QR Verification Engine',
+                              sub: '24/7 public certificate validation',
+                              opt1: { yes: true, text: 'Dynamic QR Code Engine + Instant Cloud Verification Page' },
+                              opt2: { yes: true, text: 'Verified PDF Certificate Generation with Unique Student ID' },
+                              opt3: { yes: null, text: 'Standard Digital Certificate PDF Generation' },
+                            },
+                          ],
+                        },
+                        {
+                          category: '4. Admin Control & Self-Service',
+                          rows: [
+                            {
+                              label: 'SuperAdmin CMS & Staff Directory',
+                              sub: 'Prices, courses, team profiles — no code needed',
+                              opt1: { yes: true, text: 'Full Business CMS (Staff Directory, Courses, Prices, B2B Tiers, Coupons)' },
+                              opt2: { yes: true, text: 'LMS Admin (Manage Courses, Tuition, and Enrollment Records)' },
+                              opt3: { yes: null, text: 'Standard WordPress Admin Panel (Basic content & page updates)' },
+                            },
+                            {
+                              label: 'Mobile 1-Step Checkout',
+                              sub: 'Square API + Apple Pay / Google Pay',
+                              opt1: { yes: true, text: 'Universal Single-Step Checkout (Combined courses + physical gear)' },
+                              opt2: { yes: true, text: 'Direct Square Checkout for LMS Course Tuitions' },
+                              opt3: { yes: null, text: 'Optimized Standard Square Payment Redirect' },
+                            },
+                          ],
+                        },
+                        {
+                          category: '5. Delivery, Infrastructure & Warranty',
+                          rows: [
+                            {
+                              label: 'Delivery Timeline',
+                              sub: 'Kickoff to production launch',
+                              opt1: { yes: null, text: '8–10 Weeks', neutral: true },
+                              opt2: { yes: null, text: '5–6 Weeks', neutral: true },
+                              opt3: { yes: null, text: '2–3 Weeks', neutral: true },
+                            },
+                            {
+                              label: 'Post-Launch Warranty',
+                              sub: 'Bugfix and onboarding support',
+                              opt1: { yes: null, text: '30 Days', neutral: true },
+                              opt2: { yes: null, text: '30 Days', neutral: true },
+                              opt3: { yes: null, text: '30 Days', neutral: true },
+                            },
+                            {
+                              label: 'Monthly Client Cloud Costs',
+                              sub: 'Paid directly to your cloud providers',
+                              opt1: { yes: null, text: '~$65–145 / mo (VPS + Atlas DB + S3/CDN)', neutral: true },
+                              opt2: { yes: null, text: '~$45–85 / mo (VPS + Cloud DB)', neutral: true },
+                              opt3: { yes: null, text: '~$20–40 / mo (Standard Hosting)', neutral: true },
+                            },
+                          ],
+                        },
+                      ].map((section) => (
+                        <React.Fragment key={section.category}>
+                          <tr className="bg-slate-900/70">
+                            <td colSpan={4} className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-sky-400 font-mono">
+                              {section.category}
+                            </td>
+                          </tr>
+                          {section.rows.map((row, ri) => (
+                            <tr key={ri} className="hover:bg-slate-900/30 transition-colors">
+                              <td className="p-3">
+                                <strong className="block text-white text-[11px]">{row.label}</strong>
+                                <span className="text-[10px] text-slate-500">{row.sub}</span>
+                              </td>
+                              {[row.opt1, row.opt2, row.opt3].map((opt, oi) => (
+                                <td key={oi} className={`p-3 ${oi === 0 ? 'bg-blue-950/20 border-x border-blue-900/40' : ''}`}>
+                                  {(opt as any).neutral ? (
+                                    <span className={`font-bold text-[11px] ${oi === 0 ? 'text-sky-300' : 'text-slate-300'}`}>{opt.text}</span>
+                                  ) : opt.yes === true ? (
+                                    <>
+                                      <span className="flex items-center gap-1 text-emerald-400 font-bold text-[11px]">
+                                        <CheckCircle2 className="w-3 h-3 shrink-0" /> Included
+                                      </span>
+                                      <span className="text-[10px] text-slate-300 block mt-0.5">{opt.text}</span>
+                                    </>
+                                  ) : opt.yes === null ? (
+                                    <>
+                                      <span className="flex items-center gap-1 text-amber-400 font-bold text-[11px]">
+                                        • Partial / Standard
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 block mt-0.5">{opt.text}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="flex items-center gap-1 text-slate-500 font-bold text-[11px]">
+                                        ✕ Not in this Sprint
+                                      </span>
+                                      <span className="text-[10px] text-slate-500 block mt-0.5">{opt.text}</span>
+                                    </>
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 3-column bottom cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                    <span className="font-bold text-sky-300 text-[10px] block mb-2 uppercase tracking-wider">ROI Perspective</span>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      At <strong>$18,500 USD</strong> for Option 1, closing <strong>ONE Gold Retainer ($84k/yr)</strong> or enrolling 75 students covers 100% of the development investment in Q1.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                    <span className="font-bold text-sky-300 text-[10px] block mb-2 uppercase tracking-wider">Payment Schedule</span>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      <strong>40%</strong> at Kickoff · <strong>30%</strong> at Alpha · <strong>30%</strong> at Launch
+                      <br /><span className="text-slate-500 text-[10px]">Applies to all three options.</span>
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-800/50">
+                    <span className="font-bold text-amber-300 text-[10px] block mb-2 uppercase tracking-wider">Monthly Client Infrastructure</span>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Paid directly by SOS to cloud providers:<br />
+                      • <strong>Opt 1:</strong> ~$65–145/mo (Full Cluster + S3/CDN)<br />
+                      • <strong>Opt 2:</strong> ~$45–85/mo (VPS + Cloud DB)<br />
+                      • <strong>Opt 3:</strong> ~$20–40/mo (Standard VPS)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB: INCLUSIONS & EXCLUSIONS ── */}
+            {activeTab === 'scopeDetails' && (
+              <div className="space-y-5 text-xs text-slate-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="p-5 rounded-xl bg-slate-900 border border-emerald-700/30">
+                    <div className="flex items-center gap-2 pb-3 mb-4 border-b border-slate-800">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <h4 className="text-sm font-bold text-white">{isEn ? 'Included in Option 1 ($18.5k):' : 'Incluido en la Opción 1 ($18.5k):'}</h4>
+                    </div>
+                    <ul className="space-y-3 text-[11px] leading-relaxed">
+                      {[
+                        ['Full Software Engineering & UI/UX', `Design, development, and deployment under shiningonsafety.us.`],
+                        ['Square E-Commerce Integration', 'In-app catalog, 1-step mobile checkout for courses and PPE gear.'],
+                        ['LMS Campus Video & Quiz Engine', 'Streaming player, enrollment form, 80% passing automated quizzes.'],
+                        ['B2B Corporate Dashboard', 'Crew roster, student progress tracking, OSHA 300A logs export.'],
+                        ['Digital QR Credential Engine', '24/7 public certificate scanner for jobsite superintendents.'],
+                        ['SuperAdmin CMS Panel', 'No-code price editor, course management, instructor profiles.'],
+                        ['30-Day Post-Launch Warranty', 'Bugfix support, performance monitoring, and staff onboarding.'],
+                      ].map(([title, desc]) => (
+                        <li key={title} className="flex items-start gap-2">
+                          <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                          <span><strong className="text-white">{title}:</strong> {desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="p-5 rounded-xl bg-slate-900 border border-amber-700/30">
+                    <div className="flex items-center gap-2 pb-3 mb-4 border-b border-slate-800">
+                      <AlertTriangle className="w-4 h-4 text-amber-400" />
+                      <h4 className="text-sm font-bold text-white">{isEn ? 'Development Exclusions (All Options):' : 'Exclusiones del Alcance (Todas las Opciones):'}</h4>
+                    </div>
+                    <ul className="space-y-3 text-[11px] leading-relaxed">
+                      {[
+                        ['Course Video Production', 'SOS provides final edited video files. Uanify configures streaming — not filming or production.'],
+                        ['Square Processing Fees', '2.9% + 30¢ per transaction deducted automatically by Square. Not part of development cost.'],
+                        ['Monthly Cloud Infrastructure', 'Server, DB, and CDN billed directly to SOS cloud accounts. Zero lock-in to Uanify.'],
+                        ['Domain & Email Hosting', 'Renewal of shiningonsafety.us and email hosting are operational costs paid directly by SOS.'],
+                      ].map(([title, desc]) => (
+                        <li key={title} className="flex items-start gap-2">
+                          <XCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                          <span><strong className="text-white">{title}:</strong> {desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB: STRATEGIC VISION ── */}
+            {activeTab === 'summary' && (
+              <div className="space-y-5 text-xs text-slate-300">
+                <div className="p-5 rounded-xl bg-slate-900 border border-slate-800">
+                  <h4 className="text-sm font-bold text-white mb-2">The Strategic Direction: Platform Unification & Growth</h4>
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    Currently, Shining On Safety operates with fragmented touchpoints between marketing, e-commerce, and training. Option 1 unifies everything under a singular high-performance web platform at <strong className="text-white">shiningonsafety.us</strong>, while Options 2 and 3 offer targeted progressive paths.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { title: 'One Unified Domain', body: 'Everything consolidated at shiningonsafety.us. One cart, one login, seamless mobile experience.' },
+                    { title: 'B2B Retainers Engine', body: 'Automated quote tools and corporate crew dashboards to close $27k–$160k/yr contracts.' },
+                    { title: 'Digital QR Credentials', body: 'Tamper-proof digital certificates with unique QR codes for instant 24/7 jobsite verification.' },
+                  ].map(c => (
+                    <div key={c.title} className="p-4 rounded-xl bg-blue-950/20 border border-blue-900/40">
+                      <span className="text-sky-400 font-bold text-xs block mb-1.5">{c.title}</span>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">{c.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB: 10 PROJECTS ── */}
+            {activeTab === 'roadmap' && (
+              <div className="space-y-3 text-xs">
+                <p className="text-slate-500 text-[11px] mb-3">The modernization is structured across 10 modular engineering phases:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    ['P01', 'Speed & Core Web Vitals (<2.2s)', 'Asset compression, caching, sub-2.2s load speed on mobile.'],
+                    ['P02', 'Technical SEO & GA4 Architecture', 'Schema.org Course markup, meta tags, conversion tracking, sitemap.'],
+                    ['P03', '1-Step Mobile Checkout', 'Square API tokenization, Apple Pay / Google Pay, zero redirect.'],
+                    ['P04', 'SuperAdmin CMS & Staff Directory', 'Self-serve course creation, prices, and team profiles without code.'],
+                    ['P05', 'Bilingual Full Localization (EN/ES)', 'Complete English and Spanish platform translation and toggle.'],
+                    ['P06', 'B2B Corporate Retainers Portal', 'Subcontractor crew roster, training progress, OSHA 300A sheets.'],
+                    ['P07', 'Security Hardening & Backups', 'Automated DB snapshots, CSP headers, rate limiting.'],
+                    ['P08', 'Digital QR Credential Engine', '24/7 online certificate validation for jobsite safety inspectors.'],
+                    ['P09', 'E-Commerce PPE Gear Integration', 'In-app physical safety gear store with unified checkout.'],
+                    ['P10', '3-in-1 Platform Unification', 'Retirement of fragmented subdomains into shiningonsafety.us.'],
+                  ].map(([num, title, desc]) => (
+                    <div key={num} className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-start gap-3 hover:border-slate-700 transition-colors">
+                      <span className="font-mono text-sky-400 font-black text-[10px] bg-blue-950 border border-blue-900 px-2 py-1 rounded shrink-0">{num}</span>
+                      <div>
+                        <h5 className="font-bold text-white text-[11px]">{title}</h5>
+                        <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB: INFRASTRUCTURE & COSTS BY OPTION ── */}
+            {activeTab === 'infrastructure' && (
+              <div className="space-y-5 text-xs text-slate-300">
+                <div className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-white mb-1">Development Investment & Monthly Cloud Infrastructure by Option</h4>
+                    <p className="text-[11px] text-slate-500">
+                      Complete financial breakdown per tier: one-time software development investment plus estimated ongoing monthly infrastructure paid directly by SOS to cloud providers.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    
+                    {/* Option 1 Complete Financials */}
+                    <div className="p-4 rounded-xl bg-slate-950 border-2 border-blue-900/60 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-sky-300 text-xs">Option 1: Full Ecosystem</span>
+                          <span className="text-[9px] bg-blue-950 text-sky-400 px-1.5 py-0.5 rounded border border-blue-800 font-mono">Recommended</span>
+                        </div>
+                        
+                        {/* Development Proposal Cost */}
+                        <div className="p-3 rounded-lg bg-blue-950/60 border border-blue-800/60 mb-3">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Development Investment:</span>
+                          <span className="text-xl font-black text-white font-heading">$18,500 <span className="text-xs font-normal text-sky-300 font-sans">USD</span></span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">40% Kickoff · 30% Alpha · 30% Launch</span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-400 mb-2 font-bold uppercase tracking-wider">Estimated Monthly Cloud Costs:</p>
+                        <ul className="space-y-1.5 text-[11px] text-slate-300">
+                          <li className="flex justify-between"><span>DigitalOcean VPS (App Server):</span> <strong className="text-white">$24–$48/mo</strong></li>
+                          <li className="flex justify-between"><span>MongoDB Atlas (Dedicated DB):</span> <strong className="text-white">$30–$57/mo</strong></li>
+                          <li className="flex justify-between"><span>AWS S3 + CloudFront (Media):</span> <strong className="text-white">$10–$40/mo</strong></li>
+                        </ul>
+                      </div>
+                      <div className="pt-3 mt-3 border-t border-slate-800 flex justify-between items-center">
+                        <span className="text-[10px] text-slate-400">Total Client Cloud Host:</span>
+                        <span className="font-mono font-black text-sky-300 text-sm">~$65–$145 / mo</span>
+                      </div>
+                    </div>
+
+                    {/* Option 2 Complete Financials */}
+                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-slate-200 text-xs">Option 2: Core LMS & Store</span>
+                        </div>
+
+                        {/* Development Proposal Cost */}
+                        <div className="p-3 rounded-lg bg-slate-900 border border-slate-800 mb-3">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Development Investment:</span>
+                          <span className="text-xl font-black text-white font-heading">$11,800 <span className="text-xs font-normal text-slate-400 font-sans">USD</span></span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">40% Kickoff · 30% Alpha · 30% Launch</span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-400 mb-2 font-bold uppercase tracking-wider">Estimated Monthly Cloud Costs:</p>
+                        <ul className="space-y-1.5 text-[11px] text-slate-300">
+                          <li className="flex justify-between"><span>DigitalOcean VPS (App Server):</span> <strong className="text-white">$24–$48/mo</strong></li>
+                          <li className="flex justify-between"><span>MongoDB Atlas (Shared Cluster):</span> <strong className="text-white">$15–$25/mo</strong></li>
+                          <li className="flex justify-between"><span>AWS S3 Video Storage:</span> <strong className="text-white">$6–$12/mo</strong></li>
+                        </ul>
+                      </div>
+                      <div className="pt-3 mt-3 border-t border-slate-800 flex justify-between items-center">
+                        <span className="text-[10px] text-slate-400">Total Client Cloud Host:</span>
+                        <span className="font-mono font-black text-slate-200 text-sm">~$45–$85 / mo</span>
+                      </div>
+                    </div>
+
+                    {/* Option 3 Complete Financials */}
+                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-slate-200 text-xs">Option 3: Essential Sprint</span>
+                        </div>
+
+                        {/* Development Proposal Cost */}
+                        <div className="p-3 rounded-lg bg-slate-900 border border-slate-800 mb-3">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">Development Investment:</span>
+                          <span className="text-xl font-black text-white font-heading">$4,800 <span className="text-xs font-normal text-slate-400 font-sans">USD</span></span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">50% Kickoff · 50% Launch</span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-400 mb-2 font-bold uppercase tracking-wider">Estimated Monthly Cloud Costs:</p>
+                        <ul className="space-y-1.5 text-[11px] text-slate-300">
+                          <li className="flex justify-between"><span>Current VPS / Web Host:</span> <strong className="text-white">$15–$30/mo</strong></li>
+                          <li className="flex justify-between"><span>Cloudflare CDN (Free Tier):</span> <strong className="text-white">$0/mo</strong></li>
+                          <li className="flex justify-between"><span>Automated Daily Backups:</span> <strong className="text-white">$5–$10/mo</strong></li>
+                        </ul>
+                      </div>
+                      <div className="pt-3 mt-3 border-t border-slate-800 flex justify-between items-center">
+                        <span className="text-[10px] text-slate-400">Total Client Cloud Host:</span>
+                        <span className="font-mono font-black text-slate-200 text-sm">~$20–$40 / mo</span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Timeline & Support Warranty Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    { label: 'Option 1 Timeline', value: '8–10 Weeks', note: 'Kickoff to full production launch', retainer: 'Optional Retainer: ~$450–$750/mo' },
+                    { label: 'Option 2 Timeline', value: '5–6 Weeks', note: 'LMS + CMS + Checkout integration', retainer: 'Optional Retainer: ~$250–$400/mo' },
+                    { label: 'Option 3 Timeline', value: '2–3 Weeks', note: 'Speed, caching & security sprint', retainer: 'Optional Retainer: ~$120–$200/mo' },
+                  ].map(t => (
+                    <div key={t.label} className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-500 block mb-1">{t.label}</span>
+                        <span className="text-xl font-black text-sky-300 font-heading block">{t.value}</span>
+                        <span className="text-[10px] text-slate-400 block mt-1">{t.note}</span>
+                      </div>
+                      <div className="pt-2 mt-2 border-t border-slate-800 text-[10px] text-slate-500">
+                        <span className="text-emerald-400 font-bold">✓ 30-Day Full Warranty Included</span>
+                        <span className="block text-slate-400 mt-0.5">{t.retainer}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── TAB: LIVE FEEDBACK ── */}
+            {activeTab === 'feedback' && (
+              <div className="space-y-5 text-xs text-slate-300">
+                <div className="flex items-center justify-between">
+                  <p className="text-slate-500 text-[11px]">
+                    {isEn
+                      ? 'Add live notes, questions, or scope adjustment requests. They are saved automatically in your browser.'
+                      : 'Agregue notas, preguntas o solicitudes de ajuste. Se guardan automáticamente en su navegador.'}
+                  </p>
+                  {submittedFeedback.length > 0 && (
+                    <button
+                      onClick={copySummary}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer shrink-0 ml-4"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>{copied ? '✓ Copied' : 'Copy All Notes'}</span>
+                    </button>
+                  )}
+                </div>
+
+                <form onSubmit={handleSendFeedback} className="p-5 rounded-xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Category — always in English */}
+                    <div className="sm:col-span-1">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Topic / Adjustment Category
+                      </label>
+                      <select
+                        value={selectedAdjustment}
+                        onChange={e => setSelectedAdjustment(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-[12px] text-white focus:outline-none focus:border-blue-600 cursor-pointer"
+                      >
+                        {FEEDBACK_CATEGORIES.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Note, Question or Specific Request
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="e.g., We would like to confirm if Option 1 can include a Subcontractor onboarding portal with individual login credentials..."
+                      value={clientNotes}
+                      onChange={e => setClientNotes(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-[12px] text-white placeholder-slate-600 focus:outline-none focus:border-blue-600 resize-none"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Save Note</span>
+                    </button>
+                  </div>
+                </form>
+
+                {/* Saved notes log */}
+                {submittedFeedback.length > 0 ? (
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-sky-500 uppercase tracking-wider font-mono block">
+                      Saved Notes ({submittedFeedback.length})
+                    </span>
+                    {submittedFeedback.map((f, i) => (
+                      <div key={i} className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[9px] px-2 py-0.5 rounded bg-blue-950 text-sky-400 border border-blue-900 font-mono">{f.type}</span>
+                          <span className="text-slate-600 text-[10px]">{f.date}</span>
+                        </div>
+                        <p className="text-slate-300 leading-relaxed">{f.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-slate-600 text-[11px] py-4">
+                    No notes saved yet. Use the form above to add questions or scope requests.
+                  </p>
+                )}
+              </div>
+            )}
+
           </div>
+        </div>
 
-          {/* Infrastructure Costs */}
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold text-white">Estimated Monthly Cloud Infrastructure:</span>
-              <p className="text-[11px] text-slate-400">DigitalOcean VPS, MongoDB Atlas Cluster, AWS S3/CloudFront (100% under Melanie's ownership)</p>
-            </div>
-            <div className="text-right shrink-0">
-              <span className="text-lg font-black text-amber-400 font-heading">~$65 – $145 USD</span>
-              <span className="text-[10px] text-slate-500 block">/ month recurring</span>
-            </div>
+        {/* ── FOOTER ── */}
+        <div className="shrink-0 px-6 py-3 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-600">
+          <span>Shining On Safety · Prepared by Uanify · Confidential</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.print()}
+              className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 font-bold border border-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer text-xs"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print / PDF</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md transition-colors cursor-pointer text-xs"
+            >
+              {isEn ? 'Close & Return to Prototype' : 'Cerrar y Volver al Prototipo'}
+            </button>
           </div>
-
         </div>
 
       </div>
